@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Finance-LINGE1315 : laboratoire interactif du risque</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1A1A2E;
+    --blue: #2A5CAA;
+    --blue-light: #E8F0FC;
+    --red: #CC0000;
+    --green: #2E7D32;
+    --gray-line: #D8D8D8;
+    --paper: #FFFFFF;
+    --muted: #5B5F6B;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--navy);
+    font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+    min-height: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #12121C;
+      --navy: #EDEDF4;
+      --muted: #A9ACB8;
+      --blue-light: #1C2A3E;
+      --gray-line: #33333F;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12121C;
+    --navy: #EDEDF4;
+    --muted: #A9ACB8;
+    --blue-light: #1C2A3E;
+    --gray-line: #33333F;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 40px 28px 56px;
+  }
+
+  .kicker {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--blue);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-size: clamp(26px, 4.2vw, 40px);
+    font-weight: 800;
+    line-height: 1.12;
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+  .lede {
+    font-size: 16.5px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 700px;
+    margin: 0 0 24px;
+  }
+  .lede b { color: var(--navy); font-weight: 600; }
+
+  .assets-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .assets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 26px;
+  }
+  .asset-btn {
+    appearance: none;
+    border: 1.5px solid var(--gray-line);
+    background: var(--paper);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s, background 0.15s, color 0.15s, opacity 0.15s;
+    opacity: 0.55;
+  }
+  .asset-btn .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+  .asset-btn[aria-pressed="true"] {
+    border-color: currentColor;
+    background: color-mix(in srgb, currentColor 10%, var(--paper));
+    color: var(--btn-color);
+    opacity: 1;
+  }
+  .asset-btn:hover { opacity: 0.85; }
+
+  .control {
+    border-top: 1px solid var(--gray-line);
+    border-bottom: 1px solid var(--gray-line);
+    padding: 24px 0 28px;
+    margin-bottom: 8px;
+  }
+  .control-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .control-label {
+    font-size: 15px;
+    color: var(--muted);
+  }
+  .control-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+  .control-value span {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 4px;
+    background: linear-gradient(to right, var(--blue) 0%, var(--blue) var(--fill, 0%), var(--gray-line) var(--fill, 0%), var(--gray-line) 100%);
+    outline: none;
+    margin: 0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 4px solid var(--blue);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--paper);
+    border: 4px solid var(--blue);
+    cursor: pointer;
+  }
+  .ticks {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding: 0 2px;
+  }
+
+  .chart-box {
+    position: relative;
+    height: 400px;
+    margin: 28px 0 8px;
+  }
+  .chart-caption {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+
+  .summary {
+    padding-top: 22px;
+    border-top: 1px solid var(--gray-line);
+  }
+  .summary-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 14px;
+  }
+  .summary-row {
+    display: grid;
+    grid-template-columns: 132px 1fr 76px 76px 90px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--blue-light);
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-head {
+    font-size: 11.5px;
+    color: var(--muted);
+    text-transform: none;
+    font-weight: 600;
+  }
+  .summary-name {
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .summary-name .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .summary-bar-track {
+    position: relative;
+    height: 7px;
+    background: var(--gray-line);
+    border-radius: 4px;
+  }
+  .summary-bar-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: currentColor;
+    border-radius: 4px;
+    opacity: 0.65;
+  }
+  .summary-num {
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+  }
+  .summary-num.worst { color: var(--red); }
+  .summary-num.best { color: var(--green); }
+  .summary-num.spread { color: var(--navy); }
+
+  .source {
+    margin-top: 32px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 30px 18px 40px; }
+    .chart-box { height: 320px; }
+    .summary-row { grid-template-columns: 1fr; row-gap: 6px; }
+    .summary-bar-track { order: 4; }
+    .summary-num { text-align: left; }
+    .summary-head { display: none; }
+  }
+
+  /* ---------- tabs and shared components (added) ---------- */
+  .tabs { display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--gray-line); margin:0 0 30px; -webkit-overflow-scrolling:touch; scrollbar-width:thin; }
+  .tab { appearance:none; background:none; border:none; border-bottom:3px solid transparent; font-family:inherit; font-size:14px; font-weight:600; color:var(--muted); padding:11px 14px; cursor:pointer; white-space:nowrap; margin-bottom:-1px; }
+  .tab:hover { color:var(--navy); }
+  .tab[aria-selected="true"] { color:var(--blue); border-bottom-color:var(--blue); }
+  .panel[hidden] { display:none; }
+  .ctrls { border-top:1px solid var(--gray-line); border-bottom:1px solid var(--gray-line); padding:22px 0 8px; margin-bottom:24px; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:4px 36px; }
+  .ctrl { margin:0 0 18px; }
+  .ctrl-top { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:8px; flex-wrap:wrap; }
+  .ctrl-label { font-size:15px; color:var(--muted); }
+  .cv b { font-size:26px; font-weight:800; }
+  .cv i { font-style:normal; font-size:15px; font-weight:600; color:var(--muted); margin-left:4px; }
+  .btnrow { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:0 0 22px; }
+  .btn { appearance:none; border:1.5px solid var(--blue); background:var(--paper); color:var(--blue); font-family:inherit; font-size:14px; font-weight:600; padding:9px 16px; border-radius:999px; cursor:pointer; }
+  .btn:hover { background:var(--blue-light); }
+  .btn.primary { background:var(--blue); color:#fff; }
+  .btn.primary:hover { opacity:.9; }
+  .chk { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:600; color:var(--muted); margin:0 18px 0 0; cursor:pointer; }
+  .chk input { accent-color:var(--blue); width:17px; height:17px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:0 0 26px; }
+  .card { background:var(--blue-light); border-radius:10px; padding:14px 16px; }
+  .card .k { font-size:12px; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .card .v { font-size:24px; font-weight:800; }
+  .card .s { font-size:12px; color:var(--muted); margin-top:5px; line-height:1.45; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:26px; margin:0 0 22px; }
+  .grid2 > div { min-width:0; }
+  .sub { font-size:14px; font-weight:700; margin:0 0 4px; }
+  .subnote { font-size:12.5px; color:var(--muted); margin:0 0 8px; line-height:1.45; }
+  .chart-box.sm { height:300px; margin:6px 0 0; }
+  .chart-box.md { height:360px; margin:6px 0 0; }
+  .insight { background:color-mix(in srgb, var(--green) 9%, var(--paper)); border:1.5px solid var(--green); border-radius:12px; padding:14px 18px; margin:6px 0 20px; font-size:15.5px; line-height:1.5; }
+  .insight .tag { display:block; font-size:12px; font-weight:800; letter-spacing:.04em; color:var(--green); margin-bottom:4px; }
+  table.t { width:100%; border-collapse:collapse; font-size:14px; margin:6px 0 22px; }
+  table.t th { text-align:right; font-size:12px; color:var(--muted); font-weight:600; padding:6px 10px; border-bottom:1px solid var(--gray-line); }
+  table.t td { text-align:right; padding:8px 10px; border-bottom:1px solid var(--blue-light); font-weight:600; }
+  table.t th:first-child, table.t td:first-child { text-align:left; }
+  .field { font-family:inherit; font-size:16px; padding:10px 12px; border:1.5px solid var(--gray-line); border-radius:8px; width:100%; background:var(--paper); color:var(--navy); }
+  .msg { font-size:13px; color:var(--red); min-height:18px; margin:6px 0 0; }
+  @media (max-width: 760px) { .grid2 { grid-template-columns:1fr; } .tab { padding:10px 11px; font-size:13px; } }
+  .calc { background:color-mix(in srgb, var(--muted) 8%, var(--paper)); border:1px solid var(--gray-line); border-radius:10px; padding:12px 16px; margin:0 0 26px; font-size:13px; line-height:1.75; color:var(--muted); }
+  .calc b { color:var(--navy); font-weight:700; }
+  .calc div + div { margin-top:2px; }
+  .calc .calcnote { margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-line); font-size:12.5px; }
+
+  /* termes anglais clés */
+  :root { --en:#4D4D4D; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --en:#B9BCC8; } }
+  :root[data-theme="dark"] { --en:#B9BCC8; }
+  .en { font-weight:700; font-style:italic; color:var(--en); }
+  .ctrl-label .en, .card .k .en { font-size:inherit; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="tabs" id="tabs" role="tablist" aria-label="Outils interactifs"></nav>
+
+<section class="panel" id="panel-horizon" role="tabpanel">
+  <p class="kicker">Finance-LINGE1315 &middot; Section 8.4</p>
+  <h1>Le temps réduit-il le risque&nbsp;?</h1>
+  <p class="lede">Chaque point ci-dessous est une année de départ historique réelle, de 1928 à 2024. Activez ou désactivez des classes d’actifs, déplacez le curseur et observez la dispersion des résultats se resserrer à mesure que la <b>période de détention</b> <span class="en">(holding period)</span> s’allonge.</p>
+
+  <p class="assets-label">Comparer les classes d’actifs</p>
+  <div class="assets" id="assetButtons" role="group" aria-label="Activer ou désactiver des classes d’actifs"></div>
+
+  <div class="control">
+    <div class="control-top">
+      <span class="control-label">Période de détention</span>
+      <span class="control-value"><span id="nval">5</span><span>ans</span></span>
+    </div>
+    <input type="range" id="slider" min="1" max="20" value="5" step="1">
+    <div class="ticks"><span>1 an</span><span>20 ans</span></div>
+  </div>
+
+  <div class="chart-box"><canvas id="chart"></canvas></div>
+  <p class="chart-caption" id="caption"></p>
+
+  <div class="summary">
+    <div class="summary-title" id="summaryTitle"></div>
+    <div class="summary-row" style="border-bottom:none; padding-top:0;">
+      <div class="summary-head"></div>
+      <div class="summary-head"></div>
+      <div class="summary-head" style="text-align:right;">Pire</div>
+      <div class="summary-head" style="text-align:right;">Meilleur</div>
+      <div class="summary-head" style="text-align:right;">Écart</div>
+    </div>
+    <div id="summaryRows"></div>
+  </div>
+
+  <p class="source">Rendements annuels du S&amp;P 500, des actions de petites entreprises (décile inférieur), des obligations d’entreprise notées Baa et des bons du Trésor à 3 mois, 1928&ndash;2024. Source : Aswath Damodaran, NYU Stern (séries annuelles de rendements historiques mises à jour). Chaque point est le rendement annualisé d’un investissement réalisé au début de l’année indiquée et conservé pendant le nombre d’années choisi, calculé en composant les rendements annuels effectivement observés sur cette fenêtre.</p>
+</section>
+
+<!-- ============ ONGLET 2 : POURQUOI T-1 ============ -->
+<section class="panel" id="panel-variance" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Section 8.3</p>
+  <h1>Pourquoi diviser la variance par T&minus;1&nbsp;?</h1>
+  <p class="lede">Chaque échantillon <span class="en">(sample)</span> ci-dessous est composé de T rendements annuels tirés d’une population de <b>moyenne vraie 10&nbsp;%</b> et de <b>volatilité vraie 20&nbsp;%</b> <span class="en">(true mean, true volatility)</span>. Nous estimons la variance de trois façons sur 4&nbsp;000 échantillons et comparons l’estimation moyenne à la vérité.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Nombre d’observations T</span><span class="cv"><b id="vTV">5</b><i>ans</i></span></div><input type="range" id="vT" min="2" max="30" step="1" value="5" aria-label="Nombre d’observations T"><div class="ticks"><span>2</span><span>30</span></div></div>
+  </div>
+  <div class="btnrow"><button class="btn primary" id="vNew">Tirer 4&nbsp;000 nouveaux échantillons</button></div>
+  <div class="cards">
+    <div class="card"><div class="k">Division par T</div><div class="v" id="vc1"></div><div class="s" id="vc1s"></div></div>
+    <div class="card"><div class="k">Division par T&minus;1</div><div class="v" id="vc2"></div><div class="s" id="vc2s"></div></div>
+    <div class="card"><div class="k">Un échantillon : écarts au carré</div><div class="v" id="vc3"></div><div class="s" id="vc3s"></div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <p class="sub">Estimation moyenne, rapportée à la variance vraie</p>
+      <p class="subnote">Si la moyenne vraie était connue, diviser par T convient. Utiliser la moyenne de l’échantillon fausse le résultat.</p>
+      <div class="chart-box sm"><canvas id="vA"></canvas></div>
+    </div>
+    <div>
+      <p class="sub">Le biais s’estompe quand T augmente</p>
+      <p class="subnote">Points : simulation. Ligne : théorie, (T&minus;1)/T.</p>
+      <div class="chart-box sm"><canvas id="vB"></canvas></div>
+    </div>
+  </div>
+  <p class="sub">Un échantillon de près</p>
+  <p class="subnote" id="vCnote"></p>
+  <div class="chart-box sm" style="height:190px"><canvas id="vC"></canvas></div>
+  <div class="insight" style="margin-top:22px"><span class="tag">IDÉE CLÉ</span><span id="vIns"></span></div>
+  <p class="source">Données simulées : rendements tirés d’une loi normale, et non rendements historiques. La variance est mesurée relativement à la variance vraie : 100&nbsp;% signifie donc une estimation sans biais <span class="en">(unbiased)</span>.</p>
+</section>
+
+<!-- ============ ONGLET 3 : ERREUR-TYPE ============ -->
+<section class="panel" id="panel-se" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Section 8.3</p>
+  <h1>Dans quelle mesure une moyenne de rendements est-elle fiable&nbsp;?</h1>
+  <p class="lede">Le rendement espéré <span class="en">(expected return)</span> vrai est de <b>12&nbsp;%</b>. Chaque échantillon simulé compte T années de rendements. Observez l’écart des moyennes d’échantillon par rapport à la vérité, et comment il dépend du nombre d’années observées.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Années de données T</span><span class="cv"><b id="seTV">13</b><i>ans</i></span></div><input type="range" id="seT" min="5" max="120" step="1" value="13" aria-label="Années de données T"><div class="ticks"><span>13 (2005&ndash;2017)</span><span>120</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Volatilité des rendements annuels</span><span class="cv"><b id="seSV">19.8</b><i>%</i></span></div><input type="range" id="seS" min="10" max="40" step="0.1" value="19.8" aria-label="Volatilité des rendements annuels"><div class="ticks"><span>10&nbsp;%</span><span>40&nbsp;%</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Précision visée pour la moyenne</span><span class="cv"><b id="sePV">1</b><i>pp</i></span></div><input type="range" id="seP" min="0.5" max="5" step="0.5" value="1" aria-label="Précision visée pour la moyenne"><div class="ticks"><span>0,5 pp</span><span>5 pp</span></div></div>
+  </div>
+  <div class="btnrow"><button class="btn" id="seQ1">13 ans</button><button class="btn" id="seQ2">92 ans</button><button class="btn primary" id="seNew">Tirer de nouveaux échantillons</button></div>
+  <div class="cards">
+    <div class="card"><div class="k">Dispersion des moyennes d’échantillon</div><div class="v" id="sc1"></div><div class="s" id="sc1s"></div></div>
+    <div class="card"><div class="k">Fourchette typique à 95&nbsp;% pour la moyenne</div><div class="v" id="sc2"></div><div class="s" id="sc2s"></div></div>
+    <div class="card"><div class="k">Intervalles contenant la vraie moyenne</div><div class="v" id="sc3"></div><div class="s" id="sc3s"></div></div>
+    <div class="card"><div class="k">Années nécessaires pour la précision visée</div><div class="v" id="sc4"></div><div class="s" id="sc4s"></div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <p class="sub">3&nbsp;000 moyennes d’échantillon</p>
+      <p class="subnote">Barres : moyennes simulées. Courbe : loi normale d’erreur-type <span class="en">(standard error)</span> &sigma;/&radic;T. L’axe horizontal reste fixe : la courbe se resserre donc quand T augmente.</p>
+      <div class="chart-box md"><canvas id="seH"></canvas></div>
+    </div>
+    <div>
+      <p class="sub">40 premiers échantillons : moyenne &plusmn; 2 erreurs-types</p>
+      <p class="subnote" id="seCnote"></p>
+      <div class="chart-box md"><canvas id="seC"></canvas></div>
+    </div>
+  </div>
+  <div class="ctrls" style="grid-template-columns:1fr; margin-top:6px">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Années de données T</span><span class="cv"><b id="seT2V">13</b><i>ans</i></span></div><input type="range" id="seT2" min="5" max="120" step="1" value="13" aria-label="Années de données T"><div class="ticks"><span>13 (2005&ndash;2017)</span><span>120</span></div></div>
+  </div>
+  <div class="insight"><span class="tag">IDÉE CLÉ</span><span id="seIns"></span></div>
+  <p class="source">Données simulées : rendements annuels tirés d’une loi normale de moyenne vraie 12&nbsp;%. Les intervalles <span class="en">(confidence intervals)</span> utilisent l’écart-type propre à chaque échantillon : pour les échantillons courts, un peu moins de 95&nbsp;% d’entre eux contiennent donc la vérité.</p>
+</section>
+
+<!-- ============ ONGLET 4 : RENDEMENT COMPOSÉ ============ -->
+<section class="panel" id="panel-compound" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Section 8.3</p>
+  <h1>Moyenne arithmétique et rendement composé</h1>
+  <p class="lede">Deux investissements ayant la <b>même moyenne arithmétique</b> <span class="en">(arithmetic average)</span> peuvent aboutir à des richesses très différentes. L’investissement volatil alterne une année de hausse et une année de baisse autour de la même moyenne.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Rendement annuel moyen</span><span class="cv"><b id="cpMV">10</b><i>%</i></span></div><input type="range" id="cpM" min="0" max="20" step="0.5" value="10" aria-label="Rendement annuel moyen"><div class="ticks"><span>0&nbsp;%</span><span>20&nbsp;%</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Écart autour de la moyenne (année haute / année basse)</span><span class="cv"><b id="cpSV">30</b><i>pp</i></span></div><input type="range" id="cpS" min="0" max="60" step="1" value="30" aria-label="Écart autour de la moyenne (année haute / année basse)"><div class="ticks"><span>0 (stable)</span><span>60 pp</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Nombre d’années</span><span class="cv"><b id="cpYV">20</b><i>ans</i></span></div><input type="range" id="cpY" min="2" max="40" step="1" value="20" aria-label="Nombre d’années"><div class="ticks"><span>2</span><span>40</span></div></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Moyenne arithmétique (les deux)</div><div class="v" id="cpk1"></div><div class="s" id="cpk1s"></div></div>
+    <div class="card"><div class="k">Rendement composé, stable</div><div class="v" id="cpk2"></div><div class="s" id="cpk2s"></div></div>
+    <div class="card"><div class="k">Rendement composé, volatil</div><div class="v" id="cpk3"></div><div class="s" id="cpk3s"></div></div>
+    <div class="card"><div class="k">Coût de la volatilité</div><div class="v" id="cpk4"></div><div class="s" id="cpk4s"></div></div>
+  </div>
+  <div class="chart-box md"><canvas id="cpC"></canvas></div>
+  <p class="chart-caption" id="cpCap"></p>
+  <div class="insight"><span class="tag">IDÉE CLÉ</span><span id="cpIns"></span></div>
+
+  <p class="sub" style="margin-top:30px">Essayez votre propre suite de rendements annuels</p>
+  <p class="subnote">Saisissez des rendements en pourcentage, séparés par des points-virgules. L’exemple du cours est +20 ; &minus;20.</p>
+  <input class="field" id="cpIn" type="text" value="20 ; -20" aria-label="Rendements annuels en pourcentage">
+  <div class="btnrow" style="margin-top:12px"><button class="btn" data-seq="20 ; -20">+20 ; &minus;20</button><button class="btn" data-seq="50 ; -50">+50 ; &minus;50</button><button class="btn" data-seq="10 ; 10 ; 10">+10 ; +10 ; +10</button><button class="btn" data-seq="-35 ; 12 ; 12 ; 12 ; 12 ; 12 ; 12 ; 12 ; 12 ; 12">&minus;35 puis +12 (9 ans)</button></div>
+  <p class="msg" id="cqMsg"></p>
+  <div class="cards">
+    <div class="card"><div class="k">Moyenne arithmétique</div><div class="v" id="cq1"></div></div>
+    <div class="card"><div class="k">Rendement annuel composé <span class="en">(CAGR)</span></div><div class="v" id="cq2"></div></div>
+    <div class="card"><div class="k">100&nbsp;$ deviennent</div><div class="v" id="cq3"></div></div>
+  </div>
+  <p class="source">Illustratif, pas des données historiques. La trajectoire volatile gagne la moyenne plus l’écart les années impaires et la moyenne moins l’écart les années paires : sa moyenne arithmétique est donc égale à celle de la trajectoire stable.</p>
+</section>
+
+<!-- ============ ONGLET 5 : DIVERSIFICATION ============ -->
+<section class="panel" id="panel-diversify" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Sections 8.5 et 8.6</p>
+  <h1>Quelle part du risque la diversification supprime-t-elle&nbsp;?</h1>
+  <p class="lede">Détenez N actions de poids égaux, ayant toutes la même volatilité. La <b>corrélation</b> <span class="en">(correlation)</span> entre les actions détermine la part du risque qui disparaît. Sans facteur commun, le risque continue de diminuer. Avec un facteur commun, il s’arrête à un plancher <span class="en">(floor)</span>.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Volatilité de chaque action</span><span class="cv"><b id="dvSV">30</b><i>%</i></span></div><input type="range" id="dvS" min="5" max="60" step="1" value="30" aria-label="Volatilité de chaque action"><div class="ticks"><span>5&nbsp;%</span><span>60&nbsp;%</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Corrélation entre deux actions quelconques</span><span class="cv"><b id="dvRV">0</b><i>&nbsp;</i></span></div><input type="range" id="dvR" min="0" max="1" step="0.05" value="0" aria-label="Corrélation entre deux actions quelconques"><div class="ticks"><span>0 (indépendantes)</span><span>1 (évoluent ensemble)</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Nombre d’actions N</span><span class="cv"><b id="dvNV">10</b><i>actions</i></span></div><input type="range" id="dvN" min="1" max="100" step="1" value="10" aria-label="Nombre d’actions N"><div class="ticks"><span>1</span><span>100</span></div></div>
+  </div>
+  <div class="btnrow"><button class="btn" data-rho="0">Risque spécifique uniquement (0)</button><button class="btn" data-rho="0.3">Mixte (0,3)</button><button class="btn" data-rho="1">Risque systématique uniquement (1)</button></div>
+  <div class="cards" style="margin-bottom:10px">
+    <div class="card"><div class="k">Volatilité du portefeuille</div><div class="v" id="dk1"></div><div class="s" id="dk1s"></div></div>
+    <div class="card"><div class="k">Plancher que la diversification ne peut franchir</div><div class="v" id="dk2"></div><div class="s" id="dk2s"></div></div>
+    <div class="card"><div class="k">Risque supprimable déjà éliminé</div><div class="v" id="dk3"></div><div class="s" id="dk3s"></div></div>
+    <div class="card"><div class="k">Part de la variance du portefeuille qui est systématique</div><div class="v" id="dk4"></div><div class="s" id="dk4s"></div></div>
+  </div>
+  <div class="calc">
+    <div id="dcM"></div>
+    <div><b>Volatilité du portefeuille :</b> <span id="dc1"></span></div>
+    <div><b>Plancher :</b> <span id="dc2"></span></div>
+    <div><b>Risque supprimable éliminé :</b> <span id="dc3"></span></div>
+    <div><b>Part systématique de la variance :</b> <span id="dc4"></span></div>
+    <div class="calcnote">Formule pour des actions de poids égaux, de même volatilité &sigma; et de même corrélation deux à deux &rho; : volatilité du portefeuille = &sigma; &times; &radic;(&rho; + (1&minus;&rho;)/N). La corrélation peut se lire comme la part de la variance de chaque action due aux nouvelles de marché. Les valeurs sont illustratives, non estimées à partir de données.</div>
+  </div>
+  <div class="chart-box md"><canvas id="dvC"></canvas></div>
+  <p class="chart-caption">Volatilité du portefeuille à mesure que l’on ajoute des actions. Vert : actions indépendantes (0). Rouge : actions qui évoluent ensemble (1).</p>
+  <div class="insight"><span class="tag">IDÉE CLÉ</span><span id="dvIns"></span></div>
+</section>
+
+<!-- ============ ONGLET 6 : HORIZON LONG ============ -->
+<section class="panel" id="panel-paths" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Section 8.6</p>
+  <h1>Un horizon long rend-il un investissement sûr&nbsp;?</h1>
+  <p class="lede">Chaque trajectoire simulée investit 100&nbsp;$ et obtient un rendement aléatoire chaque année. Le temps resserre la plage des résultats <b>annualisés</b> <span class="en">(annualized)</span>, mais la plage de la <b>richesse finale</b> <span class="en">(final wealth)</span> continue de s’élargir.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Horizon d’investissement</span><span class="cv"><b id="phYV">30</b><i>ans</i></span></div><input type="range" id="phY" min="5" max="60" step="1" value="30" aria-label="Horizon d’investissement"><div class="ticks"><span>5</span><span>60</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Rendement annuel espéré</span><span class="cv"><b id="phMV">12</b><i>%</i></span></div><input type="range" id="phM" min="0" max="20" step="0.5" value="12" aria-label="Rendement annuel espéré"><div class="ticks"><span>0&nbsp;%</span><span>20&nbsp;%</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Volatilité des rendements annuels</span><span class="cv"><b id="phSV">20</b><i>%</i></span></div><input type="range" id="phS" min="5" max="40" step="1" value="20" aria-label="Volatilité des rendements annuels"><div class="ticks"><span>5&nbsp;%</span><span>40&nbsp;%</span></div></div>
+  </div>
+  <div class="btnrow"><label class="chk"><input type="checkbox" id="phLog"> Échelle logarithmique <span class="en">(log scale)</span></label><label class="chk"><input type="checkbox" id="phLoss"> Afficher une première année à &minus;35&nbsp;%</label><button class="btn primary" id="phNew">Simuler de nouvelles trajectoires</button></div>
+  <div class="cards">
+    <div class="card"><div class="k">Richesse finale médiane</div><div class="v" id="ph1"></div><div class="s" id="ph1s"></div></div>
+    <div class="card"><div class="k">Du 5<sup>e</sup> au 95<sup>e</sup> centile <span class="en">(percentile)</span></div><div class="v" id="ph2"></div><div class="s" id="ph2s"></div></div>
+    <div class="card"><div class="k">Probabilité de finir sous 100&nbsp;$</div><div class="v" id="ph3"></div><div class="s" id="ph3s"></div></div>
+    <div class="card"><div class="k">Effet d’une première année à &minus;35&nbsp;%</div><div class="v" id="ph4"></div><div class="s" id="ph4s"></div></div>
+  </div>
+  <div class="chart-box md"><canvas id="phC"></canvas></div>
+  <p class="chart-caption">Richesse à partir de 100&nbsp;$. Bande foncée : 25<sup>e</sup> à 75<sup>e</sup> centile. Bande claire : 5<sup>e</sup> à 95<sup>e</sup>. Ligne : médiane. Lignes fines : huit trajectoires individuelles. Les axes restent fixes : modifier un curseur déplace donc la courbe.</p>
+  <p class="subnote" id="phAxisNote" style="text-align:center; margin-top:-14px"></p>
+  <p class="sub">Ce qui change avec l’horizon</p>
+  <table class="t"><thead><tr><th>Horizon</th><th>Rendement annualisé, 5<sup>e</sup>–95<sup>e</sup> centile</th><th>Largeur</th><th>Probabilité de perte</th><th>Richesse finale, 5<sup>e</sup>–95<sup>e</sup> centile</th></tr></thead><tbody id="phTb"></tbody></table>
+  <div class="insight"><span class="tag">IDÉE CLÉ</span><span id="phIns"></span></div>
+  <p class="source">Données simulées : 2&nbsp;000 trajectoires avec des rendements annuels indépendants tirés d’une loi lognormale de moyenne et de volatilité choisies, et non des rendements historiques. Les marchés réels peuvent différer, par exemple en raison d’une volatilité changeante.</p>
+</section>
+
+<!-- ============ ONGLET 7 : BÊTA ============ -->
+<section class="panel" id="panel-beta" role="tabpanel" hidden>
+  <p class="kicker">Finance-LINGE1315 &middot; Sections 8.7 et 8.8</p>
+  <h1>Ce que mesure le bêta et ce qu’il rapporte</h1>
+  <p class="lede">Le <b>bêta</b> <span class="en">(beta)</span> mesure l’intensité avec laquelle le rendement d’une action suit celui du marché. Construisez une action ci-dessous, observez le bêta qu’elle produit, le <b>rendement exigé</b> <span class="en">(required return)</span> par les investisseurs, et pourquoi la volatilité seule est la mauvaise mesure du risque.</p>
+
+  <p class="sub">1. Dans quelle mesure l’action suit-elle le marché&nbsp;?</p>
+  <p class="subnote">La conjoncture a autant de chances d’être forte que faible. Le marché rapporte +47&nbsp;% en conjoncture forte et &minus;25&nbsp;% en conjoncture faible. Choisissez le rendement de l’action dans chaque cas.</p>
+  <div class="ctrls">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Rendement de l’action si la conjoncture est forte</span><span class="cv"><b id="bSV">40</b><i>%</i></span></div><input type="range" id="bS" min="-60" max="100" step="1" value="40" aria-label="Rendement de l’action si la conjoncture est forte"><div class="ticks"><span>&minus;60&nbsp;%</span><span>100&nbsp;%</span></div></div>
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Rendement de l’action si la conjoncture est faible</span><span class="cv"><b id="bWV">-20</b><i>%</i></span></div><input type="range" id="bW" min="-60" max="100" step="1" value="-20" aria-label="Rendement de l’action si la conjoncture est faible"><div class="ticks"><span>&minus;60&nbsp;%</span><span>100&nbsp;%</span></div></div>
+  </div>
+  <div class="btnrow">
+    <button class="btn" data-b="40,-20,0">Type S (cours)</button>
+    <button class="btn" data-b="5,5,30">Type I (cours)</button>
+    <button class="btn" data-b="70,-40,0">Amplificateur</button>
+    <button class="btn" data-b="20,0,0">Défensive</button>
+    <button class="btn" data-b="-10,26,0">Couverture <span class="en">(hedge)</span></button>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Bêta</div><div class="v" id="bk1"></div><div class="s" id="bk1s"></div></div>
+    <div class="card"><div class="k">Ce que cela signifie</div><div class="v" id="bk2" style="font-size:19px"></div><div class="s" id="bk2s"></div></div>
+  </div>
+  <div class="chart-box md"><canvas id="bC"></canvas></div>
+  <p class="chart-caption">Chaque point est un état de la conjoncture (rouge : faible, vert : forte). La pente de la droite qui les relie est le bêta. La droite en pointillés est le marché lui-même, de bêta 1.</p>
+  <div class="calc"><div id="bc1"></div></div>
+
+  <p class="sub" style="margin-top:34px">2. Quel rendement ce bêta exige-t-il&nbsp;?</p>
+  <p class="subnote">Les investisseurs exigent le taux sans risque <span class="en">(risk-free rate)</span> plus le bêta multiplié par la prime de risque du marché <span class="en">(market risk premium)</span>. Le rendement attendu du marché est de 11&nbsp;%, moyenne de +47&nbsp;% et de &minus;25&nbsp;%.</p>
+  <div class="ctrls" style="grid-template-columns:1fr">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Taux sans risque</span><span class="cv"><b id="bRV">5</b><i>%</i></span></div><input type="range" id="bR" min="0" max="8" step="0.5" value="5" aria-label="Taux sans risque"><div class="ticks"><span>0&nbsp;%</span><span>8&nbsp;%</span></div></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Prime de risque du marché</div><div class="v" id="bk3"></div><div class="s" id="bk3s"></div></div>
+    <div class="card"><div class="k">Rendement exigé (coût du capital <span class="en">(cost of capital)</span>)</div><div class="v" id="bk4"></div><div class="s" id="bk4s"></div></div>
+    <div class="card"><div class="k">Dont récompense du risque systématique</div><div class="v" id="bk5"></div><div class="s" id="bk5s"></div></div>
+  </div>
+  <div class="chart-box md"><canvas id="bL"></canvas></div>
+  <p class="chart-caption">La droite de marché des titres <span class="en">(security market line)</span> : le rendement exigé croît avec le bêta. Un bêta de 0 rapporte le taux sans risque, et le marché lui-même a un bêta de 1.</p>
+  <div class="calc"><div id="bc2"></div></div>
+
+  <p class="sub" style="margin-top:34px">3. La volatilité n’est pas le bêta</p>
+  <p class="subnote">Ajoutez du risque spécifique <span class="en">(firm-specific risk)</span>, sans lien avec la conjoncture. La volatilité totale augmente, mais ni le bêta ni le rendement exigé ne changent. Dans cette économie, la volatilité du marché est de 36&nbsp;%.</p>
+  <div class="ctrls" style="grid-template-columns:1fr">
+    <div class="ctrl"><div class="ctrl-top"><span class="ctrl-label">Volatilité spécifique de l’entreprise</span><span class="cv"><b id="bEV">0</b><i>%</i></span></div><input type="range" id="bE" min="0" max="60" step="1" value="0" aria-label="Volatilité spécifique de l’entreprise"><div class="ticks"><span>0&nbsp;%</span><span>60&nbsp;%</span></div></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="k">Volatilité totale</div><div class="v" id="bk6"></div><div class="s" id="bk6s"></div></div>
+    <div class="card"><div class="k">Part systématique de la variance</div><div class="v" id="bk7"></div><div class="s" id="bk7s"></div></div>
+    <div class="card"><div class="k">Rendement exigé</div><div class="v" id="bk8"></div><div class="s" id="bk8s"></div></div>
+  </div>
+  <div class="chart-box sm"><canvas id="bV"></canvas></div>
+  <p class="chart-caption">Les volatilités systématique et spécifique se combinent par la racine carrée de la somme des carrés : le total est donc inférieur à leur somme.</p>
+  <div class="calc"><div id="bc3"></div><div id="bc4"></div></div>
+  <div class="insight"><span class="tag">IDÉE CLÉ</span><span id="bIns"></span></div>
+  <p class="source">Économie stylisée du cours : conjonctures forte et faible équiprobables, marché à +47&nbsp;% ou &minus;25&nbsp;% (rendement espéré de 11&nbsp;% et volatilité de 36&nbsp;%), taux sans risque réglable. Bêta = (rendement de l’action en conjoncture forte &minus; en conjoncture faible) / (47&nbsp;% &minus; (&minus;25&nbsp;%)). Rendement exigé = taux sans risque + bêta &times; (11&nbsp;% &minus; taux sans risque).</p>
+</section>
+
+</div>
+
+<script>
+const ASSETS = {
+  smallcap: { label: 'Petites capitalisations', color: '#CC0000', data: {1928:59.91,1929:-46.61,1930:-50.03,1931:-44.66,1932:20.49,1933:148.34,1934:20.01,1935:53.18,1936:92.82,1937:-53.28,1938:1.6,1939:-5.73,1940:-31.81,1941:-5.54,1942:61.79,1943:137.97,1944:69.73,1945:91.09,1946:-15.32,1947:-0.96,1948:-0.71,1949:27.22,1950:52.78,1951:3.92,1952:1.19,1953:-5.8,1954:63.9,1955:27.09,1956:-0.99,1957:-15.25,1958:69.35,1959:12.74,1960:-3.49,1961:29.83,1962:-9.76,1963:19.93,1964:23.15,1965:45.66,1966:-9.49,1967:116.79,1968:60.7,1969:-33.05,1970:-19.0,1971:16.49,1972:0.26,1973:-38.63,1974:-26.81,1975:59.35,1976:48.51,1977:30.67,1978:29.32,1979:41.97,1980:42.41,1981:-4.14,1982:27.11,1983:35.86,1984:-14.52,1985:25.14,1986:2.16,1987:-14.03,1988:17.37,1989:6.95,1990:-27.92,1991:46.27,1992:25.51,1993:25.73,1994:-5.01,1995:32.27,1996:14.63,1997:22.17,1998:-13.46,1999:38.24,2000:-9.29,2001:32.14,2002:-3.58,2003:91.91,2004:17.49,2005:3.93,2006:18.47,2007:-9.15,2008:-44.84,2009:47.48,2010:28.24,2011:-14.15,2012:18.73,2013:50.68,2014:1.59,2015:-9.21,2016:17.5,2017:15.47,2018:-16.26,2019:12.27,2020:34.73,2021:21.69,2022:-23.38,2023:5.17,2024:12.37} },
+  sp500: { label: 'S&P 500', color: '#2A5CAA', data: {1928:43.81,1929:-8.3,1930:-25.12,1931:-43.84,1932:-8.64,1933:49.98,1934:-1.19,1935:46.74,1936:31.94,1937:-35.34,1938:29.28,1939:-1.1,1940:-10.67,1941:-12.77,1942:19.17,1943:25.06,1944:19.03,1945:35.82,1946:-8.43,1947:5.2,1948:5.7,1949:18.3,1950:30.81,1951:23.68,1952:18.15,1953:-1.21,1954:52.56,1955:32.6,1956:7.44,1957:-10.46,1958:43.72,1959:12.06,1960:0.34,1961:26.64,1962:-8.81,1963:22.61,1964:16.42,1965:12.4,1966:-9.97,1967:23.8,1968:10.81,1969:-8.24,1970:3.56,1971:14.22,1972:18.76,1973:-14.31,1974:-25.9,1975:37.0,1976:23.83,1977:-6.98,1978:6.51,1979:18.52,1980:31.74,1981:-4.7,1982:20.42,1983:22.34,1984:6.15,1985:31.24,1986:18.49,1987:5.81,1988:16.54,1989:31.48,1990:-3.06,1991:30.23,1992:7.49,1993:9.97,1994:1.33,1995:37.2,1996:22.68,1997:33.1,1998:28.34,1999:20.89,2000:-9.03,2001:-11.85,2002:-21.97,2003:28.36,2004:10.74,2005:4.83,2006:15.61,2007:5.48,2008:-36.55,2009:25.94,2010:14.82,2011:2.1,2012:15.89,2013:32.15,2014:13.52,2015:1.38,2016:11.77,2017:21.61,2018:-4.23,2019:31.21,2020:18.02,2021:28.47,2022:-18.04,2023:26.06,2024:24.88} },
+  baacorp: { label: 'Obligations d’entreprise', color: '#2E7D32', data: {1928:3.22,1929:3.02,1930:0.54,1931:-15.68,1932:23.59,1933:12.97,1934:18.82,1935:13.31,1936:11.38,1937:-4.42,1938:9.24,1939:7.98,1940:8.65,1941:5.01,1942:5.18,1943:8.04,1944:6.57,1945:6.8,1946:2.51,1947:0.26,1948:3.44,1949:5.38,1950:4.24,1951:-0.19,1952:4.44,1953:1.62,1954:6.16,1955:2.04,1956:-2.35,1957:-0.72,1958:6.43,1959:1.57,1960:6.66,1961:5.1,1962:6.5,1963:5.46,1964:5.16,1965:3.19,1966:-3.45,1967:0.9,1968:4.85,1969:-2.03,1970:5.65,1971:14.0,1972:11.41,1973:4.32,1974:-4.38,1975:11.05,1976:19.75,1977:9.95,1978:3.14,1979:-2.01,1980:-3.32,1981:8.46,1982:29.05,1983:16.19,1984:15.62,1985:23.86,1986:21.35,1987:2.81,1988:14.38,1989:15.95,1990:6.28,1991:18.93,1992:11.31,1993:15.47,1994:-0.97,1995:21.29,1996:3.42,1997:12.75,1998:7.63,1999:0.91,2000:9.39,2001:8.54,2002:12.14,2003:12.32,2004:10.35,2005:5.3,2006:5.2,2007:4.84,2008:-3.54,2009:20.21,2010:9.41,2011:12.26,2012:9.33,2013:-0.98,2014:10.78,2015:-1.5,2016:11.52,2017:9.23,2018:-3.27,2019:15.25,2020:10.6,2021:0.93,2022:-15.14,2023:8.74,2024:1.74} },
+  tbill: { label: 'Bons du Trésor', color: '#8A8A8A', data: {1928:3.08,1929:3.16,1930:4.55,1931:2.31,1932:1.07,1933:0.96,1934:0.28,1935:0.17,1936:0.17,1937:0.28,1938:0.07,1939:0.05,1940:0.04,1941:0.13,1942:0.34,1943:0.38,1944:0.38,1945:0.38,1946:0.38,1947:0.6,1948:1.05,1949:1.12,1950:1.2,1951:1.52,1952:1.72,1953:1.89,1954:0.94,1955:1.72,1956:2.62,1957:3.22,1958:1.77,1959:3.39,1960:2.87,1961:2.35,1962:2.77,1963:3.16,1964:3.55,1965:3.95,1966:4.86,1967:4.29,1968:5.34,1969:6.67,1970:6.39,1971:4.33,1972:4.06,1973:7.04,1974:7.85,1975:5.79,1976:4.98,1977:5.26,1978:7.18,1979:10.05,1980:11.39,1981:14.04,1982:10.6,1983:8.62,1984:9.54,1985:7.47,1986:5.97,1987:5.78,1988:6.67,1989:8.11,1990:7.5,1991:5.38,1992:3.43,1993:3.0,1994:4.25,1995:5.49,1996:5.01,1997:5.06,1998:4.78,1999:4.64,2000:5.82,2001:3.4,2002:1.61,2003:1.01,2004:1.37,2005:3.15,2006:4.73,2007:4.36,2008:1.37,2009:0.15,2010:0.14,2011:0.05,2012:0.09,2013:0.06,2014:0.03,2015:0.05,2016:0.32,2017:0.93,2018:1.94,2019:2.06,2020:0.35,2021:0.05,2022:2.02,2023:5.07,2024:4.97} }
+};
+
+/* ===================== shared helpers ===================== */
+const $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim() || '';
+const MINUS = '\u2212';
+/* ===== aides de formatage français ===== */
+const FR = s => String(s).replace(/(\d)\.(\d)/g,'$1,$2').replace(/(\d) ?%/g,'$1\u202f%').replace(/ ([:;?!])/g,'\u00a0$1');
+const EN = t => `<span class="en">(${t})</span>`;
+Object.defineProperty(Element.prototype,'ftext',{set(v){ this.innerHTML = FR(v); }});
+Object.defineProperty(Element.prototype,'fhtml',{set(v){ this.innerHTML = FR(v); }});
+
+const sg = (v, d = 1, plus = false) => (v < 0 && Math.abs(v).toFixed(d) !== (0).toFixed(d) ? MINUS : (plus && v > 0 ? '+' : '')) + Math.abs(v).toFixed(d);
+const money = v => Math.round(v).toLocaleString('fr-FR') + '\u00a0$';
+let seedCtr = 0;
+const newSeed = () => (Date.now() ^ (++seedCtr * 2654435761)) >>> 0;
+function rng(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function normals(n, seed) {
+  const r = rng(seed), out = new Float64Array(n);
+  for (let i = 0; i < n; i += 2) {
+    const u = r() || 1e-12, v = r(), m = Math.sqrt(-2 * Math.log(u));
+    out[i] = m * Math.cos(2 * Math.PI * v);
+    if (i + 1 < n) out[i + 1] = m * Math.sin(2 * Math.PI * v);
+  }
+  return out;
+}
+function quantile(sorted, p) {
+  const i = (sorted.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (i - lo);
+}
+function setFill(el) { const mn = +el.min, mx = +el.max; el.style.setProperty('--fill', ((+el.value - mn) / (mx - mn) * 100) + '%'); }
+function bindSlider(id, fmt, cb) {
+  const el = $(id), out = $(id + 'V');
+  const upd = fire => { setFill(el); out.ftext = fmt(+el.value); if (fire) cb(); };
+  el.addEventListener('input', () => upd(true));
+  upd(false);
+  return { el, set: v => { el.value = v; upd(true); } };
+}
+const charts = {};
+function mk(tab, canvasId, cfg) {
+  try {
+    const o = cfg.options || {}, tc = o.plugins && o.plugins.tooltip && o.plugins.tooltip.callbacks;
+    if (tc && tc.label) { const f = tc.label; tc.label = it => { const r = f(it); return r == null ? r : FR(r); }; }
+    Object.values(o.scales || {}).forEach(sc => { if (sc && sc.ticks && sc.ticks.callback) { const g = sc.ticks.callback; sc.ticks.callback = (...a) => { const r = g(...a); return r == null ? r : FR(r); }; } });
+  } catch (e) {}
+  const c = new Chart($(canvasId).getContext('2d'), cfg);
+  (charts[tab] = charts[tab] || []).push(c);
+  return c;
+}
+function AX(title, o = {}) {
+  const ticks = Object.assign({ font: { family: 'Montserrat', size: 11 }, color: css('--muted') }, o.ticks || {});
+  const r = Object.assign({ title: { display: !!title, text: title, font: { family: 'Montserrat', size: 12.5 }, color: css('--muted') }, grid: { color: css('--gray-line') } }, o);
+  r.ticks = ticks;
+  return r;
+}
+const TIP = { backgroundColor: '#1A1A2E', titleFont: { family: 'Montserrat', weight: '700', size: 12.5 }, bodyFont: { family: 'Montserrat', size: 12 }, padding: 10 };
+const rgba = (hex, a) => { const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return `rgba(${r},${g},${b},${a})`; };
+const LEGL = () => ({ position: 'bottom', labels: { font: { family: 'Montserrat', size: 12 }, usePointStyle: false, boxWidth: 28, boxHeight: 3, color: css('--muted') } });
+const BLUE = '#2A5CAA', RED = '#CC0000', GREEN = '#2E7D32', GOLD = '#90810D', GRAY = '#8A8A8A';
+const valueLabels = {
+  id: 'valueLabels',
+  afterDatasetsDraw(chart, args, opts) {
+    if (!opts || !opts.fmt) return;
+    const ctx = chart.ctx, meta = chart.getDatasetMeta(0);
+    meta.data.forEach((bar, i) => {
+      ctx.save(); ctx.font = '700 13px Montserrat'; ctx.fillStyle = css('--navy'); ctx.textAlign = 'center';
+      ctx.fillText(FR(opts.fmt(chart.data.datasets[0].data[i])), bar.x, bar.y - 7); ctx.restore();
+    });
+  }
+};
+function setCard(id, v, s) { $(id).ftext = v; if (s !== undefined && $(id + 's')) $(id + 's').ftext = s; }
+const normPdf = (x, m, s) => Math.exp(-0.5 * ((x - m) / s) ** 2) / (s * Math.sqrt(2 * Math.PI));
+
+const INIT = {};
+
+/* ===================== TAB 2: why T-1 ===================== */
+INIT.variance = function () {
+  const NS = 4000, TM = 30, MU = 10, SG = 20;
+  let Z, bias = {};
+  function stats(T) {
+    let aK = 0, aT = 0, aT1 = 0;
+    for (let s = 0; s < NS; s++) {
+      const b = s * TM; let sm = 0, sq = 0;
+      for (let i = 0; i < T; i++) { const z = Z[b + i]; sm += z; sq += z * z; }
+      const m = sm / T, ssm = sq - T * m * m;
+      aK += sq / T; aT += ssm / T; aT1 += ssm / (T - 1);
+    }
+    return { known: aK / NS, estT: aT / NS, estT1: aT1 / NS };
+  }
+  function drawNew() {
+    Z = normals(NS * TM, newSeed()); bias = {};
+    for (let T = 2; T <= TM; T++) bias[T] = stats(T).estT;
+    render();
+  }
+  const cA = mk('variance', 'vA', {
+    type: 'bar',
+    data: { labels: [[`Moyenne connue,`, `division par T`], [`Moyenne de l’échantillon,`, `division par T`], [`Moyenne de l’échantillon,`, `division par T` + MINUS + '1']],
+      datasets: [{ data: [1, 1, 1], backgroundColor: [rgba(GRAY, .75), rgba(RED, .75), rgba(GREEN, .75)], borderRadius: 4 },
+                 { type: 'line', label: `Variance vraie`, data: [1, 1, 1], borderColor: css('--navy'), borderDash: [6, 5], pointRadius: 0, borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, TIP, { enabled: false }), valueLabels: { fmt: v => (v * 100).toFixed(0) + '\u202f%' } },
+      scales: { x: AX('', { grid: { display: false } }), y: AX(`Estimation moyenne / vérité`, { min: 0, max: 1.3, ticks: { callback: v => Math.round(v * 100) + '\u202f%' } }) } },
+    plugins: [valueLabels]
+  });
+  const th = [], thSel = { x: 5, y: 0.8 };
+  for (let T = 2; T <= TM; T++) th.push({ x: T, y: (T - 1) / T });
+  const cB = mk('variance', 'vB', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: `Théorie (T` + MINUS + '1)/T', data: th, showLine: true, borderColor: css('--muted'), borderDash: [5, 4], pointRadius: 0, borderWidth: 2 },
+      { label: `Simulation`, data: [], backgroundColor: rgba(BLUE, .75), pointRadius: 4 },
+      { label: `T choisi`, data: [], backgroundColor: RED, pointRadius: 8, pointStyle: 'rectRot' }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Montserrat', size: 11.5 }, usePointStyle: true, boxWidth: 8, color: css('--muted') } },
+        tooltip: Object.assign({}, TIP, { callbacks: { label: it => `T = ${it.raw.x} : ${(it.raw.y * 100).toFixed(0)} % de la variance vraie` } }) },
+      scales: { x: AX(`Nombre d’observations T`, { min: 1, max: 31, ticks: { stepSize: 5 } }), y: AX(`Estimation moyenne / vérité`, { min: 0.4, max: 1.1, ticks: { callback: v => Math.round(v * 100) + '\u202f%' } }) } }
+  });
+  const cC = mk('variance', 'vC', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: `Observations`, data: [], backgroundColor: rgba(BLUE, .7), pointRadius: 7 },
+      { label: `Moyenne vraie`, data: [{ x: MU, y: 0 }, { x: MU, y: 1 }], showLine: true, borderColor: css('--navy'), borderDash: [6, 5], pointRadius: 0, borderWidth: 2 },
+      { label: `Moyenne de l’échantillon`, data: [], showLine: true, borderColor: RED, pointRadius: 0, borderWidth: 2.5 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Montserrat', size: 11.5 }, usePointStyle: true, boxWidth: 8, color: css('--muted') } }, tooltip: Object.assign({}, TIP, { enabled: false }) },
+      scales: { x: AX(`Rendement annuel (%)`, { min: -60, max: 80 }), y: { min: 0, max: 1, display: false, grid: { display: false } } } }
+  });
+  function render() {
+    const T = +$('vT').value, st = stats(T);
+    const pT = st.estT * 100, pT1 = st.estT1 * 100, theory = (T - 1) / T * 100;
+    setCard('vc1', pT.toFixed(0) + '\u202f%', `de la variance vraie, en moyenne. Théorie : (T${MINUS}1)/T = ${theory.toFixed(0)} %.`);
+    setCard('vc2', pT1.toFixed(0) + '\u202f%', `de la variance vraie, en moyenne. Sans biais ${EN('unbiased')}.`);
+    cA.data.datasets[0].data = [st.known, st.estT, st.estT1]; cA.update();
+    cB.data.datasets[1].data = Object.keys(bias).map(t => ({ x: +t, y: bias[t] }));
+    cB.data.datasets[2].data = [{ x: T, y: bias[T] }]; cB.update();
+    const xs = []; let sum = 0;
+    for (let i = 0; i < T; i++) { const v = MU + SG * Z[i]; xs.push(v); sum += v; }
+    const m = sum / T; let ssM = 0, ssT = 0;
+    xs.forEach(v => { ssM += (v - m) ** 2; ssT += (v - MU) ** 2; });
+    cC.data.datasets[0].data = xs.map((v, i) => ({ x: v, y: 0.2 + 0.6 * ((i * 0.6180339) % 1) }));
+    cC.data.datasets[2].data = [{ x: m, y: 0 }, { x: m, y: 1 }]; cC.update();
+    $('vCnote').ftext = `Premier échantillon simulé avec T = ${T}. Sa moyenne est de ${sg(m)} %, pour une moyenne vraie de 10 %.`;
+    setCard('vc3', Math.round(ssM).toLocaleString('fr-FR'), `Mesuré depuis la moyenne de l’échantillon. Depuis la moyenne vraie, ce serait ${Math.round(ssT).toLocaleString('fr-FR')}. L’écart est T(R${'\u0304'}${MINUS}\u03bc)\u00b2 = ${Math.round(T * (m - MU) ** 2).toLocaleString('fr-FR')} : les écarts mesurés depuis R${'\u0304'} sous-estiment donc toujours la dispersion.`);
+    $('vIns').ftext = `Avec T = ${T}, les écarts à la moyenne de l’échantillon doivent sommer à zéro : seuls ${T - 1} d’entre eux peuvent varier librement. Diviser par T sous-estime la variance d’environ ${(100 / T).toFixed(0)} %. Diviser par T${MINUS}1 la corrige exactement, en moyenne.`;
+  }
+  bindSlider('vT', v => String(v), render);
+  $('vNew').addEventListener('click', drawNew);
+  drawNew();
+};
+
+/* ===================== TAB 3: standard error ===================== */
+INIT.se = function () {
+  const NS = 3000, TM = 120, MU = 12;
+  let Z = normals(NS * TM, newSeed());
+  const bins = 176;
+  const cH = mk('se', 'seH', {
+    type: 'bar',
+    data: { labels: [], datasets: [{ label: `Moyennes simulées`, data: [], backgroundColor: rgba(BLUE, .6), borderWidth: 0, barPercentage: 1, categoryPercentage: 1 },
+                                   { type: 'line', label: `Loi normale`, data: [], borderColor: RED, borderWidth: 2.5, pointRadius: 0, tension: .3 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, TIP, { enabled: false }) },
+      scales: { x: AX(`Rendement moyen de l’échantillon (%)`, { grid: { display: false }, ticks: { maxTicksLimit: 9, autoSkip: true, maxRotation: 0 } }), y: AX(`Échantillons`, { beginAtZero: true }) } }
+  });
+  const cC = mk('se', 'seC', {
+    type: 'scatter', data: { datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, TIP, { enabled: false }) },
+      scales: { x: AX(`Rendement (%)`), y: { min: 0, max: 41, display: false, grid: { display: false } } } }
+  });
+  function render() {
+    const T = +$('seT').value, sig = +$('seS').value, P = +$('seP').value;
+    const seT = sig / Math.sqrt(T);
+    let cover = 0, sumD = 0, sumD2 = 0;
+    const lo = MU - 2.2 * sig, hi = MU + 2.2 * sig, w = (hi - lo) / bins, counts = new Array(bins).fill(0);
+    const ci = [];
+    for (let s = 0; s < NS; s++) {
+      const b = s * TM; let sm = 0, sq = 0;
+      for (let i = 0; i < T; i++) { const z = Z[b + i]; sm += z; sq += z * z; }
+      const m = sm / T, v = Math.max((sq - T * m * m) / (T - 1), 0), se = sig * Math.sqrt(v / T), dev = sig * m;
+      if (Math.abs(dev) <= 2 * se) cover++;
+      sumD += dev; sumD2 += dev * dev;
+      const k = Math.floor((MU + dev - lo) / w); if (k >= 0 && k < bins) counts[k]++;
+      if (s < 40) ci.push({ m: MU + dev, se, hit: Math.abs(dev) <= 2 * se });
+    }
+    const mean = sumD / NS, sd = Math.sqrt(Math.max(sumD2 / NS - mean * mean, 0));
+    cH.data.labels = counts.map((_, k) => FR((lo + (k + .5) * w).toFixed(1)).replace('-', '\u2212'));
+    cH.data.datasets[0].data = counts;
+    cH.data.datasets[1].data = counts.map((_, k) => NS * w * normPdf(lo + (k + .5) * w, MU, seT));
+    cH.update();
+    const sets = ci.map((c, i) => ({ data: [{ x: c.m - 2 * c.se, y: i + 1 }, { x: c.m, y: i + 1 }, { x: c.m + 2 * c.se, y: i + 1 }], showLine: true,
+      borderColor: c.hit ? rgba(BLUE, .8) : RED, backgroundColor: c.hit ? rgba(BLUE, .9) : RED, borderWidth: c.hit ? 2 : 3, pointRadius: [0, 3, 0] }));
+    sets.push({ data: [{ x: MU, y: 0 }, { x: MU, y: 41 }], showLine: true, borderColor: css('--navy'), borderDash: [6, 5], borderWidth: 2, pointRadius: 0 });
+    cC.data.datasets = sets;
+    cC.options.scales.x.min = Math.floor(MU - 2.2 * sig); cC.options.scales.x.max = Math.ceil(MU + 2.2 * sig);
+    cC.update();
+    const missed = ci.filter(c => !c.hit).length;
+    $('seCnote').ftext = `Moyenne ± 2 erreurs-types ${EN('standard errors')}. Pour T = ${T}, chaque intervalle s’étend sur environ ${(4 * seT).toFixed(1)} pp, et les échantillons plus courts donnent des intervalles plus larges. Les intervalles rouges manquent la moyenne vraie (12 %), soit environ 5 % d’entre eux.`;
+    setCard('sc1', sd.toFixed(1) + ' pp', `Erreur-type théorique, σ/√T : ${seT.toFixed(1)} pp.`);
+    setCard('sc2', '\u00b1' + (2 * seT).toFixed(1) + ' pp', `Autour des 12 % vrais : ${(MU - 2 * seT).toFixed(1)} % à ${(MU + 2 * seT).toFixed(1)} %.`);
+    setCard('sc3', (100 * cover / NS).toFixed(0) + '\u202f%', `${cover.toLocaleString('fr-FR')} sur ${NS.toLocaleString('fr-FR')} échantillons. ${missed} des 40 affichés manquent la cible.`);
+    const need = Math.ceil((2 * sig / P) ** 2);
+    setCard('sc4', need.toLocaleString('fr-FR'), `T = (2σ / ${P.toFixed(1)})², pour cerner la moyenne à ±${P.toFixed(1)} pp près.`);
+    $('seIns').ftext = `Avec ${T} années de données, la moyenne n’est fiable qu’à environ ±${(2 * seT).toFixed(1)} pp près. L’erreur-type diminue comme √T : quadrupler l’échantillon ne divise donc l’incertitude que par deux. Atteindre ±${P.toFixed(1)} pp demanderait environ ${need.toLocaleString('fr-FR')} ans${need > 100 ? ', plus que l’histoire de n’importe quel marché' : ''}.`;
+  }
+  function syncT(from, to) { const a = $(from), b = $(to); b.value = a.value; setFill(b); $(to + 'V').ftext = a.value; }
+  const sT = bindSlider('seT', v => String(v), () => { syncT('seT', 'seT2'); render(); });
+  bindSlider('seT2', v => String(v), () => { syncT('seT2', 'seT'); render(); });
+  bindSlider('seS', v => v.toFixed(1), render);
+  bindSlider('seP', v => v.toFixed(1), render);
+  $('seQ1').addEventListener('click', () => sT.set(13));
+  $('seQ2').addEventListener('click', () => sT.set(92));
+  $('seNew').addEventListener('click', () => { Z = normals(NS * TM, newSeed()); render(); });
+  render();
+};
+
+/* ===================== TAB 4: arithmetic vs compound ===================== */
+INIT.compound = function () {
+  const cC = mk('compound', 'cpC', {
+    type: 'line',
+    data: { labels: [], datasets: [
+      { label: `Stable`, data: [], borderColor: BLUE, backgroundColor: rgba(BLUE, .1), borderWidth: 3, pointRadius: 0 },
+      { label: `Volatil`, data: [], borderColor: RED, backgroundColor: rgba(RED, .1), borderWidth: 3, pointRadius: 3, stepped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 350 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: LEGL(),
+        tooltip: Object.assign({}, TIP, { callbacks: { label: it => `${it.dataset.label}: ${money(it.raw)}` } }) },
+      scales: { x: AX(`Année`, { ticks: { maxTicksLimit: 12 } }), y: AX(`Valeur de 100 $`, { beginAtZero: true, ticks: { callback: v => money(v) } }) } }
+  });
+  function render() {
+    const mu = +$('cpM').value / 100, sw = +$('cpS').value / 100, Y = +$('cpY').value;
+    const labels = [], st = [100], vo = [100], rets = [];
+    for (let t = 1; t <= Y; t++) {
+      const r = t % 2 === 1 ? mu + sw : mu - sw; rets.push(r);
+      st.push(st[t - 1] * (1 + mu)); vo.push(vo[t - 1] * (1 + r));
+    }
+    for (let t = 0; t <= Y; t++) labels.push(t);
+    const am = rets.reduce((a, b) => a + b, 0) / Y;
+    const cg = Math.pow(vo[Y] / 100, 1 / Y) - 1;
+    cC.data.labels = labels; cC.data.datasets[0].data = st; cC.data.datasets[1].data = vo; cC.update();
+    setCard('cpk1', sg(am * 100, 1) + '\u202f%', `La même moyenne de rendement dans les deux cas (à l’arrondi près pour les horizons impairs).`);
+    setCard('cpk2', sg(mu * 100, 1) + '\u202f%', `100 $ deviennent ${money(st[Y])}.`);
+    setCard('cpk3', sg(cg * 100, 2) + '\u202f%', `100 $ deviennent ${money(vo[Y])}.`);
+    setCard('cpk4', sg((am - cg) * 100, 2) + ' pp', `Moyenne arithmétique moins rendement composé. Règle empirique : la moitié de la variance, σ²/2 = ${(sw * sw / 2 * 100).toFixed(2)} pp.`);
+    $('cpCap').ftext = `Les deux trajectoires ont une moyenne arithmétique de ${sg(am * 100, 1)} % par an. La trajectoire volatile alterne entre ${sg((mu + sw) * 100, 0)} % et ${sg((mu - sw) * 100, 0)} %.`;
+    $('cpIns').ftext = sw === 0 ? `Sans fluctuations, la moyenne arithmétique et le rendement composé sont identiques. Augmentez l’écart pour les voir se séparer.`
+      : `Le rendement composé est ce que l’investisseur a réellement gagné : ${sg(cg * 100, 2)} % par an, et non ${sg(am * 100, 1)} %. L’écart est le coût de la volatilité ${EN('cost of volatility')} ; il croît avec le carré des écarts. La moyenne arithmétique reste la meilleure estimation pour une seule année future.`;
+  }
+  bindSlider('cpM', v => v.toFixed(1), render);
+  bindSlider('cpS', v => String(v), render);
+  bindSlider('cpY', v => String(v), render);
+  render();
+  function custom() {
+    const txt = $('cpIn').value, msg = $('cqMsg');
+    const nums = (txt.match(/[-+\u2212]?\s*\d+(?:[.,]\d+)?/g) || []).map(s => parseFloat(s.replace('\u2212', '-').replace(/\s+/g, '').replace(',', '.')));
+    msg.ftext = '';
+    if (!nums.length) { msg.ftext = `Saisissez au moins un rendement annuel, par exemple 20 ; -20.`; ['cq1', 'cq2', 'cq3'].forEach(i => $(i).ftext = ''); return; }
+    if (nums.length > 80) { msg.ftext = `Veuillez saisir au plus 80 rendements annuels.`; return; }
+    if (nums.some(n => n <= -100)) { msg.ftext = `Un rendement ne peut pas être de −100 % ou moins.`; return; }
+    let g = 1; nums.forEach(r => g *= 1 + r / 100);
+    const am = nums.reduce((a, b) => a + b, 0) / nums.length, cg = (Math.pow(g, 1 / nums.length) - 1) * 100;
+    $('cq1').ftext = sg(am, 2) + '\u202f%'; $('cq2').ftext = sg(cg, 2) + '\u202f%'; $('cq3').ftext = (100 * g).toFixed(2) + '\u00a0$';
+  }
+  $('cpIn').addEventListener('input', custom);
+  document.querySelectorAll('#panel-compound [data-seq]').forEach(b => b.addEventListener('click', () => { $('cpIn').value = b.dataset.seq; custom(); }));
+  custom();
+};
+
+/* ===================== TAB 5: diversification ===================== */
+INIT.diversify = function () {
+  const f = (N, rho, s) => s * Math.sqrt(rho + (1 - rho) / N);
+  const cC = mk('diversify', 'dvC', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: `Votre corrélation`, data: [], showLine: true, borderColor: BLUE, borderWidth: 3.5, pointRadius: 0 },
+      { label: `Indépendantes (0)`, data: [], showLine: true, borderColor: GREEN, borderDash: [6, 5], borderWidth: 2, pointRadius: 0 },
+      { label: `Évoluent ensemble (1)`, data: [], showLine: true, borderColor: RED, borderDash: [6, 5], borderWidth: 2, pointRadius: 0 },
+      { label: `Plancher`, data: [], showLine: true, borderColor: GOLD, borderDash: [2, 4], borderWidth: 2.5, pointRadius: 0 },
+      { label: `N choisi`, data: [], backgroundColor: BLUE, pointRadius: 8, pointStyle: 'circle', borderColor: '#fff', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: LEGL(),
+        tooltip: Object.assign({}, TIP, { callbacks: { label: it => `${it.dataset.label} : ${it.raw.y.toFixed(1)} % pour N = ${Math.round(it.raw.x)}` } }) },
+      scales: { x: AX(`Nombre d’actions N`, { min: 1, max: 100 }), y: AX(`Volatilité du portefeuille`, { beginAtZero: true, ticks: { callback: v => v + '\u202f%' } }) } }
+  });
+  function render() {
+    const s = +$('dvS').value, rho = +$('dvR').value, N = +$('dvN').value;
+    const pts = rho2 => { const a = []; for (let n = 1; n <= 100; n++) a.push({ x: n, y: f(n, rho2, s) }); return a; };
+    const floor = s * Math.sqrt(rho);
+    cC.data.datasets[0].data = pts(rho); cC.data.datasets[1].data = pts(0); cC.data.datasets[2].data = pts(1);
+    cC.data.datasets[3].data = rho > 0 ? [{ x: 1, y: floor }, { x: 100, y: floor }] : [];
+    cC.data.datasets[4].data = [{ x: N, y: f(N, rho, s) }]; cC.update();
+    const vp = f(N, rho, s);
+    const removable = s - floor, removed = removable > 1e-9 ? (s - vp) / removable * 100 : 0;
+    const sysShare = rho / (rho + (1 - rho) / N) * 100;
+    let need = '>1,000';
+    if (removable > 1e-9) { for (let n = 1; n <= 1000; n++) if (f(n, rho, s) - floor <= 1) { need = String(n); break; } }
+    setCard('dk1', vp.toFixed(1) + '\u202f%', `Chaque action seule : ${s} %. Poids égaux sur ${N} action${N === 1 ? '' : 's'}.`);
+    setCard('dk2', floor.toFixed(1) + '\u202f%', rho === 0 ? `Aucun plancher : avec des actions indépendantes, le risque peut être diversifié vers zéro.` : `Le risque de marché qui subsiste quel que soit le nombre d’actions détenues.`);
+    setCard('dk3', removed.toFixed(0) + '\u202f%', removable > 1e-9 ? `${need} actions pour s’approcher à moins de 1 pp du plancher.` : `Rien à supprimer : toutes les actions ont le même risque de marché.`);
+    setCard('dk4', sysShare.toFixed(0) + '\u202f%', `Le reste est de la variance spécifique, que la diversification a éliminée par compensation.`);
+    const k = rho + (1 - rho) / N, r2 = rho.toFixed(2), q2 = (1 - rho).toFixed(2);
+    $('dcM').ftext = `Données : σ = ${s} %, ρ = ${r2}, N = ${N}.`;
+    $('dc1').ftext = `σ × √[ρ + (1 ${MINUS} ρ)/N] = ${s} % × √[${r2} + ${q2}/${N}] = ${s} % × √${k.toFixed(4)} = ${vp.toFixed(1)} %`;
+    $('dc2').ftext = `σ × √ρ, limite quand N croît = ${s} % × √${r2} = ${floor.toFixed(1)} %`;
+    $('dc3').ftext = removable > 1e-9
+      ? `(σ ${MINUS} volatilité du portefeuille) / (σ ${MINUS} plancher) = (${s} ${MINUS} ${vp.toFixed(1)}) / (${s} ${MINUS} ${floor.toFixed(1)}) = ${(s - vp).toFixed(1)} / ${(s - floor).toFixed(1)} = ${removed.toFixed(0)} %. Le nombre d’actions affiché est le plus petit N pour lequel la volatilité est au plus de ${(floor + 1).toFixed(1)} % (plancher + 1 pp), trouvé par recherche.`
+      : `Sans objet : avec une corrélation de 1, le plancher est égal à la volatilité d’une seule action ; il n’y a donc aucun risque à supprimer.`;
+    $('dc4').ftext = `ρ / [ρ + (1 ${MINUS} ρ)/N] = ${r2} / [${r2} + ${q2}/${N}] = ${r2} / ${k.toFixed(4)} = ${sysShare.toFixed(0)} %`;
+    $('dvIns').ftext = rho === 0 ? `Quand les risques sont indépendants, la volatilité diminue comme 1/√N : ${N} actions ramènent ${s} % à ${vp.toFixed(1)} %. Ajouter des entreprises continue d’aider, sans limite.`
+      : rho === 1 ? `Quand toutes les actions portent le même risque de marché, la diversification ne sert à rien. Un portefeuille est exactement aussi volatil qu’une seule action.`
+      : `La diversification supprime la part spécifique du risque ${EN('firm-specific risk')}, mais pas la part commune. Avec une corrélation de ${rho.toFixed(2)}, la volatilité ne peut pas descendre sous ${floor.toFixed(1)} %, quel que soit le nombre d’actions ajoutées.`;
+  }
+  bindSlider('dvS', v => String(v), render);
+  const rS = bindSlider('dvR', v => v.toFixed(2), render);
+  bindSlider('dvN', v => String(v), render);
+  document.querySelectorAll('#panel-diversify [data-rho]').forEach(b => b.addEventListener('click', () => rS.set(+b.dataset.rho)));
+  render();
+};
+
+/* ===================== TAB 6: long-horizon paths ===================== */
+INIT.paths = function () {
+  const NP = 2000, YM = 60, STR = YM + 1;
+  const LIN_MAX = 20000, LOG_MIN = 1, LOG_MAX = 1e7;
+  let Z = normals(NP * YM, newSeed());
+  const W = new Float64Array(NP * STR), R1 = new Float64Array(NP);
+  const cC = mk('paths', 'phC', {
+    type: 'line', data: { labels: [], datasets: [] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 350 }, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, TIP, { filter: it => !!it.dataset.tip, callbacks: { label: it => `${it.dataset.tip}: ${money(it.raw)}` } }) },
+      scales: { x: AX(`Année`, { ticks: { maxTicksLimit: 12 } }), y: AX(`Richesse à partir de 100 $`, { ticks: { callback: v => money(v), maxTicksLimit: 8 } }) } }
+  });
+  function sim(mu, sg_) {
+    const s2 = Math.log(1 + (sg_ * sg_) / ((1 + mu) ** 2)), s = Math.sqrt(s2), m = Math.log(1 + mu) - s2 / 2;
+    for (let p = 0; p < NP; p++) {
+      let w = 100; W[p * STR] = 100;
+      for (let t = 1; t <= YM; t++) { const g = Math.exp(m + s * Z[p * YM + t - 1]); if (t === 1) R1[p] = g - 1; w *= g; W[p * STR + t] = w; }
+    }
+  }
+  function col(t, forced) {
+    const a = new Float64Array(NP);
+    for (let p = 0; p < NP; p++) a[p] = forced ? W[p * STR + t] * 0.65 / (1 + R1[p]) : W[p * STR + t];
+    a.sort(); return a;
+  }
+  const annual = (w, H) => (Math.pow(w / 100, 1 / H) - 1) * 100;
+  function render() {
+    const Y = +$('phY').value, mu = +$('phM').value / 100, sg_ = +$('phS').value / 100;
+    sim(mu, sg_);
+    const log = $('phLog').checked, showLoss = $('phLoss').checked;
+    const lab = Array.from({ length: YM + 1 }, (_, t) => t), p95 = [], p75 = [], p50 = [], p25 = [], p5 = [], f50 = [];
+    for (let t = 0; t <= Y; t++) {
+      const a = col(t);
+      p95.push(quantile(a, .95)); p75.push(quantile(a, .75)); p50.push(quantile(a, .5)); p25.push(quantile(a, .25)); p5.push(quantile(a, .05));
+      f50.push(t === 0 ? 100 : quantile(col(t, true), .5));
+    }
+    const ds = [
+      { data: p95, borderColor: rgba(BLUE, .25), borderWidth: 1, pointRadius: 0, fill: false },
+      { data: p5, borderColor: rgba(BLUE, .25), borderWidth: 1, pointRadius: 0, fill: '-1', backgroundColor: rgba(BLUE, .12) },
+      { data: p75, borderColor: rgba(BLUE, .4), borderWidth: 1, pointRadius: 0, fill: false },
+      { data: p25, borderColor: rgba(BLUE, .4), borderWidth: 1, pointRadius: 0, fill: '-1', backgroundColor: rgba(BLUE, .22) },
+      { data: p50, borderColor: BLUE, borderWidth: 3, pointRadius: 0, tip: `Médiane` }];
+    for (let p = 0; p < 8; p++) { const d = []; for (let t = 0; t <= Y; t++) d.push(W[p * STR + t]); ds.push({ data: d, borderColor: rgba(GRAY, .5), borderWidth: 1, pointRadius: 0 }); }
+    if (showLoss) ds.push({ data: f50, borderColor: RED, borderDash: [6, 5], borderWidth: 2.5, pointRadius: 0, tip: `Médiane si l’année 1 est à −35 %` });
+    cC.data.labels = lab; cC.data.datasets = ds;
+    const yTick = log ? (v => { const l = Math.log10(v); return Math.abs(l - Math.round(l)) < 1e-9 ? money(v) : ''; }) : (v => money(v));
+    cC.options.scales.y = AX(`Richesse à partir de 100 $`, Object.assign({ type: log ? 'logarithmic' : 'linear', ticks: { callback: yTick, maxTicksLimit: log ? 12 : 8 } }, log ? { min: LOG_MIN, max: LOG_MAX } : { min: 0, max: LIN_MAX }));
+    cC.update();
+    const aF = col(Y), q5 = quantile(aF, .05), q50 = quantile(aF, .5), q95 = quantile(aF, .95);
+    $('phAxisNote').ftext = !log && q95 > LIN_MAX ? (q50 > LIN_MAX ? `La médiane est sortie du graphique : la richesse dépasse 20 000 $. Cochez « échelle logarithmique » pour tout voir.` : `Le haut de l’éventail dépasse 20 000 $ et est coupé. Cochez « échelle logarithmique » pour tout voir.`) : '';
+    let loss = 0; for (let i = 0; i < NP; i++) if (aF[i] < 100) loss++;
+    setCard('ph1', money(q50), `après ${Y} ans, à partir de 100 $.`);
+    setCard('ph2', money(q5) + ` à ` + money(q95), `${(q95 / q5).toFixed(1)} fois d’écart.`);
+    setCard('ph3', (100 * loss / NP).toFixed(0) + '\u202f%', `Part des 2 000 trajectoires finissant sous les 100 $ de départ.`);
+    const fm = quantile(col(Y, true), .5);
+    setCard('ph4', sg((fm / q50 - 1) * 100, 0) + '\u202f%', `sur la richesse finale médiane : ${money(q50)} tombent à ${money(fm)}.`);
+    const tb = $('phTb'); tb.fhtml = ''; const rows = {};
+    [1, 5, 10, 20, 30, 40, 60].forEach(H => {
+      const a = col(H), lo = quantile(a, .05), hi = quantile(a, .95); let l = 0; for (let i = 0; i < NP; i++) if (a[i] < 100) l++;
+      rows[H] = { alo: annual(lo, H), ahi: annual(hi, H), lo, hi };
+      const tr = document.createElement('tr');
+      tr.fhtml = `<td>${H} an${H > 1 ? 's' : ''}</td><td>${sg(rows[H].alo, 1, true)} % à ${sg(rows[H].ahi, 1, true)} %</td><td>${(rows[H].ahi - rows[H].alo).toFixed(1)} pp</td><td>${(100 * l / NP).toFixed(0)} %</td><td>${money(lo)} à ${money(hi)}</td>`;
+      tb.appendChild(tr);
+    });
+    const a1 = rows[1], aY = { alo: annual(q5, Y), ahi: annual(q95, Y) };
+    $('phIns').ftext = `Sur 1 an, le rendement annualisé s’étale sur ${(a1.ahi - a1.alo).toFixed(0)} pp ; sur ${Y} ans, seulement sur ${(aY.ahi - aY.alo).toFixed(1)} pp. Pourtant la richesse finale va de ${money(q5)} à ${money(q95)}. Le temps lisse le rendement par année, pas l’incertitude en dollars, et une première année à −35 %, au lieu d’une année typique, réduit la richesse finale médiane d’environ ${Math.abs((fm / q50 - 1) * 100).toFixed(0)} %.`;
+  }
+  bindSlider('phY', v => String(v), render);
+  bindSlider('phM', v => v.toFixed(1), render);
+  bindSlider('phS', v => String(v), render);
+  $('phLog').addEventListener('change', render); $('phLoss').addEventListener('change', render);
+  $('phNew').addEventListener('click', () => { Z = normals(NP * YM, newSeed()); render(); });
+  render();
+};
+
+/* ===================== TAB 7: beta and required return ===================== */
+INIT.beta = function () {
+  const MS = 47, MW = -25, EM = (MS + MW) / 2, SDM = (MS - MW) / 2, DM = MS - MW;
+  const p0 = v => sg(v, 0), pc = v => sg(v, 1, false);
+  const cC = mk('beta', 'bC', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: `Marché (bêta 1)`, data: [{ x: -30, y: -30 }, { x: 52, y: 52 }], showLine: true, borderColor: GRAY, borderDash: [6, 5], borderWidth: 2, pointRadius: 0 },
+      { label: `Votre action`, data: [], showLine: true, borderColor: BLUE, borderWidth: 3.5, pointRadius: 0 },
+      { label: `États de la conjoncture`, data: [], pointRadius: 10, pointHoverRadius: 12, pointBackgroundColor: [RED, GREEN], borderColor: '#fff', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+      plugins: { legend: (() => { const g = LEGL(); g.labels.filter = it => it.datasetIndex !== 2; return g; })(), tooltip: Object.assign({}, TIP, { filter: it => it.datasetIndex === 2, callbacks: { label: it => `Conjoncture ${it.raw.s} : marché ${sg(it.raw.x, 0, true)} %, action ${sg(it.raw.y, 0, true)} %` } }) },
+      scales: { x: AX(`Rendement du marché (%)`, { min: -30, max: 52, grid: { color: c => (c.tick && c.tick.value === 0) ? css('--muted') : css('--gray-line') } }),
+                y: AX(`Rendement de l’action (%)`, { min: -60, max: 100, ticks: { callback: v => v + '\u202f%' }, grid: { color: c => (c.tick && c.tick.value === 0) ? css('--muted') : css('--gray-line') } }) } }
+  });
+  const cL = mk('beta', 'bL', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: `Droite de marché des titres (security market line)`, data: [], showLine: true, borderColor: BLUE, borderWidth: 3, pointRadius: 0 },
+      { label: `Actif sans risque (bêta 0)`, data: [], backgroundColor: GRAY, pointRadius: 8 },
+      { label: `Portefeuille de marché (bêta 1)`, data: [], backgroundColor: BLUE, pointRadius: 8, pointStyle: 'rectRot' },
+      { label: `Votre action`, data: [], backgroundColor: RED, pointRadius: 10, borderColor: '#fff', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 250 },
+      plugins: { legend: { position: 'bottom', labels: { font: { family: 'Montserrat', size: 12 }, usePointStyle: true, boxWidth: 8, color: css('--muted') } },
+        tooltip: Object.assign({}, TIP, { filter: it => it.datasetIndex > 0, callbacks: { label: it => `${it.dataset.label} : bêta ${sg(it.raw.x, 2)}, rendement exigé ${it.raw.y.toFixed(1)} %` } }) },
+      scales: { x: AX(`Bêta`, { min: -2.5, max: 3, ticks: { stepSize: 0.5 } }), y: AX(`Rendement exigé`, { min: -30, max: 40, ticks: { callback: v => v + '\u202f%' } }) } }
+  });
+  const cV = mk('beta', 'bV', {
+    type: 'bar',
+    data: { labels: [`Part systématique`, `Part spécifique`, `Volatilité totale`], datasets: [{ data: [0, 0, 0], backgroundColor: [rgba(BLUE, .75), rgba(GOLD, .75), rgba(GRAY, .8)], borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      plugins: { legend: { display: false }, tooltip: Object.assign({}, TIP, { enabled: false }), valueLabels: { fmt: v => v.toFixed(0) + '\u202f%' } },
+      scales: { x: AX('', { grid: { display: false } }), y: AX(`Volatilité`, { min: 0, max: 120, ticks: { callback: v => v + '\u202f%', stepSize: 20 } }) } },
+    plugins: [valueLabels]
+  });
+  function meaning(b) {
+    if (Math.abs(b) <= 0.05) return [`Indépendante de la conjoncture`, `L’action ne réagit pas aux nouvelles de marché : elle ne porte donc aucun risque systématique.`];
+    if (b < 0) return [`Évolue à l’inverse du marché`, `Elle tend à rapporter quand le marché baisse : elle joue donc le rôle d’assurance.`];
+    if (b >= 1.05) return [`Amplifie le marché`, `Pour chaque variation de 1 % du marché, l’action varie d’environ ${b.toFixed(2)} %.`];
+    if (b >= 0.95) return [`Évolue avec le marché`, `À peu près un pour un, comme le marché lui-même.`];
+    return [`Suit le marché plus doucement`, `Pour chaque variation de 1 % du marché, l’action varie d’environ ${b.toFixed(2)} %.`];
+  }
+  function render() {
+    const Rs = +$('bS').value, Rw = +$('bW').value, rf = +$('bR').value, noise = +$('bE').value;
+    const beta = (Rs - Rw) / DM, mrp = EM - rf, r = rf + beta * mrp, reward = beta * mrp;
+    const sys = Math.abs(beta) * SDM, tot = Math.hypot(sys, noise), share = tot > 0 ? sys * sys / (tot * tot) * 100 : null;
+    // part 1
+    cC.data.datasets[1].data = [{ x: -30, y: Rw + beta * (-30 - MW) }, { x: 52, y: Rw + beta * (52 - MW) }];
+    cC.data.datasets[2].data = [{ x: MW, y: Rw, s: `faible` }, { x: MS, y: Rs, s: `forte` }];
+    cC.update();
+    const m = meaning(beta);
+    setCard('bk1', sg(beta, 2), `Le rendement de l’action varie de ${sg(Rs - Rw, 0)} pp entre les deux états, celui du marché de ${DM} pp.`);
+    setCard('bk2', m[0], m[1]);
+    $('bc1').fhtml = `<b>Bêta :</b> (R<sub>forte</sub> ${MINUS} R<sub>faible</sub>) / (R<sub>marché,forte</sub> ${MINUS} R<sub>marché,faible</sub>) = (${p0(Rs)} % ${MINUS} (${p0(Rw)} %)) / (47 % ${MINUS} (${MINUS}25 %)) = ${sg(Rs - Rw, 0)} / ${DM} = ${sg(beta, 3)}`;
+    // part 2
+    cL.data.datasets[0].data = [{ x: -2.5, y: rf - 2.5 * mrp }, { x: 3, y: rf + 3 * mrp }];
+    cL.data.datasets[1].data = [{ x: 0, y: rf }]; cL.data.datasets[2].data = [{ x: 1, y: EM }]; cL.data.datasets[3].data = [{ x: beta, y: r }];
+    cL.update();
+    setCard('bk3', mrp.toFixed(1) + '\u202f%', `Rendement attendu du marché 11 % moins le taux sans risque ${rf.toFixed(1)} %.`);
+    setCard('bk4', r.toFixed(1) + '\u202f%', beta < 0 ? `Inférieur au taux sans risque : l’action couvre le risque de marché ${EN('hedge')}.` : `Le taux sans risque plus la récompense du risque systématique.`);
+    setCard('bk5', sg(reward, 1) + ' pp', `Bêta ${sg(beta, 2)} multiplié par la prime de risque du marché ${mrp.toFixed(1)} %.`);
+    $('bc2').fhtml = `<b>Rendement exigé :</b> r<sub>f</sub> + &beta; &times; (E[R<sub>marché</sub>] ${MINUS} r<sub>f</sub>) = ${rf.toFixed(1)} % + ${sg(beta, 3)} &times; (11 % ${MINUS} ${rf.toFixed(1)} %) = ${rf.toFixed(1)} % + ${sg(beta, 3)} &times; ${mrp.toFixed(1)} % = ${r.toFixed(1)} %`;
+    // part 3
+    cV.data.datasets[0].data = [sys, noise, tot]; cV.update();
+    setCard('bk6', tot.toFixed(1) + '\u202f%', `La volatilité du marché est de 36 %.`);
+    setCard('bk7', share === null ? 'n.d.' : share.toFixed(0) + '\u202f%', `Le reste est de la variance spécifique, que la diversification peut supprimer.`);
+    setCard('bk8', r.toFixed(1) + '\u202f%', `Inchangé par le risque spécifique : il dépend du seul bêta (${sg(beta, 2)}).`);
+    $('bc3').fhtml = `<b>Volatilité totale :</b> &radic;[(|&beta;| &times; volatilité du marché)&sup2; + (volatilité spécifique)&sup2;] = &radic;[(${Math.abs(beta).toFixed(2)} &times; 36 %)&sup2; + (${noise} %)&sup2;] = &radic;[${(sys * sys).toFixed(0)} + ${(noise * noise).toFixed(0)}] = ${tot.toFixed(1)} %`;
+    $('bc4').fhtml = `<b>Part systématique de la variance :</b> (|&beta;| &times; 36 %)&sup2; / variance totale = ${(sys * sys).toFixed(0)} / ${(tot * tot).toFixed(0)} = ${share === null ? 'non définie (aucun risque)' : share.toFixed(0) + ' %'}`;
+    let ins;
+    if (Math.abs(beta) <= 0.05) ins = `Avec un bêta d’environ 0, les investisseurs n’exigent que le taux sans risque de ${rf.toFixed(1)} %, quelle que soit la volatilité de l’action. Sa volatilité totale de ${tot.toFixed(1)} % est presque entièrement du risque spécifique, que l’on peut diversifier sans coût.`;
+    else ins = `Avec un bêta de ${sg(beta, 2)}, les investisseurs exigent ${r.toFixed(1)} %. La volatilité totale de l’action est de ${tot.toFixed(1)} %, mais seuls ${share.toFixed(0)} % de sa variance sont systématiques. Ajoutez du risque spécifique : la volatilité augmente, tandis que le rendement exigé reste inchangé — seule la part non diversifiable est rémunérée.`;
+    $('bIns').ftext = ins;
+  }
+  bindSlider('bS', v => sg(v, 0), render);
+  bindSlider('bW', v => sg(v, 0), render);
+  bindSlider('bR', v => v.toFixed(1), render);
+  bindSlider('bE', v => String(v), render);
+  document.querySelectorAll('#panel-beta [data-b]').forEach(b => b.addEventListener('click', () => {
+    const [s, w, n] = b.dataset.b.split(',').map(Number);
+    [['bS', s], ['bW', w], ['bE', n]].forEach(([id, v]) => { $(id).value = v; setFill($(id)); $(id + 'V').ftext = id === 'bE' ? String(v) : sg(v, 0); });
+    render();
+  }));
+  render();
+};
+
+
+INIT.horizon = function () {
+const ASSET_ORDER = ['smallcap','sp500','baacorp','tbill'];
+const YEARS = Object.keys(ASSETS.sp500.data).map(Number).sort((a,b)=>a-b);
+
+let activeAssets = new Set(ASSET_ORDER);
+let currentN = 5;
+
+function rollingAnnualized(assetKey, n){
+  const rets = ASSETS[assetKey].data;
+  const out = [];
+  for(let i=0;i<=YEARS.length-n;i++){
+    const window = YEARS.slice(i, i+n);
+    let g = 1;
+    window.forEach(y => g *= (1 + rets[y]/100));
+    const ann = (Math.pow(g, 1/n) - 1) * 100;
+    out.push({ startYear: window[0], endYear: window[window.length-1], ann: ann });
+  }
+  return out;
+}
+
+function fmtPct(v){
+  const s = v >= 0 ? '+' : '\u2212';
+  return FR(s + Math.abs(v).toFixed(1) + '%');
+}
+function dollarsFor(ann, n){ return 100 * Math.pow(1 + ann/100, n); }
+function fmtDollar(v){
+  return money(v);
+}
+function hexToRgba(hex, alpha){
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+const assetButtonsEl = document.getElementById('assetButtons');
+ASSET_ORDER.forEach(key => {
+  const a = ASSETS[key];
+  const btn = document.createElement('button');
+  btn.className = 'asset-btn';
+  btn.style.setProperty('--btn-color', a.color);
+  btn.style.color = a.color;
+  btn.setAttribute('aria-pressed', activeAssets.has(key) ? 'true' : 'false');
+  btn.fhtml = `<span class="dot"></span>${a.label}`;
+  btn.addEventListener('click', () => {
+    if (activeAssets.has(key)) {
+      if (activeAssets.size === 1) return; // keep at least one active
+      activeAssets.delete(key);
+    } else {
+      activeAssets.add(key);
+    }
+    btn.setAttribute('aria-pressed', activeAssets.has(key) ? 'true' : 'false');
+    update();
+  });
+  assetButtonsEl.appendChild(btn);
+});
+
+const ctx = document.getElementById('chart').getContext('2d');
+let chart = new Chart(ctx, {
+  type: 'scatter',
+  data: { datasets: [] },
+  options: {
+    animation: { duration: 650, easing: 'easeOutCubic' },
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1A1A2E',
+        titleFont: { family: 'Montserrat', weight: '700', size: 13 },
+        bodyFont: { family: 'Montserrat', size: 12.5 },
+        padding: 10,
+        displayColors: true,
+        boxPadding: 4,
+        callbacks: {
+          title: (items) => { const d = items[0].raw; return d.startYear === d.endYear ? ('' + d.startYear) : (d.startYear + '\u2013' + d.endYear); },
+          label: (item) => {
+            const d = item.raw;
+            return `${ASSETS[d.asset].label} : ${fmtPct(d.ann)}  (100\u00a0$ \u2192 ${fmtDollar(dollarsFor(d.ann, currentN))})`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Année de départ', font: { family: 'Montserrat', size: 13 }, color: '#5B5F6B' },
+           grid: { color: '#EFEFEF' }, ticks: { font: { family: 'Montserrat', size: 11 }, color: '#5B5F6B', maxRotation: 0, autoSkip: true, maxTicksLimit: 10, callback: (v) => String(v) } },
+      y: { title: { display: true, text: 'Rendement annualisé', font: { family: 'Montserrat', size: 13 }, color: '#5B5F6B' },
+           grid: { color: '#EFEFEF' }, ticks: { font: { family: 'Montserrat', size: 11 }, color: '#5B5F6B', callback: (v) => (v>0?'+':'') + v + '\u202f%' } }
+    }
+  }
+});
+
+function buildSummaryRows(n){
+  document.getElementById('summaryTitle').ftext = `Résumé pour une période de détention de ${n} an${n > 1 ? 's' : ''}`;
+  const container = document.getElementById('summaryRows');
+  container.fhtml = '';
+
+  const rows = ASSET_ORDER.filter(k => activeAssets.has(k)).map(k => {
+    const vals = rollingAnnualized(k, n).map(d => d.ann);
+    return { key: k, min: Math.min(...vals), max: Math.max(...vals) };
+  });
+  const globalMin = Math.min(...rows.map(r => r.min));
+  const globalMax = Math.max(...rows.map(r => r.max));
+  const span = globalMax - globalMin;
+
+  rows.forEach(r => {
+    const a = ASSETS[r.key];
+    const row = document.createElement('div');
+    row.className = 'summary-row';
+    const left = ((r.min - globalMin) / span) * 100;
+    const width = ((r.max - r.min) / span) * 100;
+    row.fhtml = `
+      <div class="summary-name" style="color:${a.color}"><span class="dot"></span>${a.label}</div>
+      <div class="summary-bar-track"><div class="summary-bar-fill" style="left:${left}%; width:${width}%; color:${a.color}"></div></div>
+      <div class="summary-num worst">${fmtPct(r.min)}</div>
+      <div class="summary-num best">${fmtPct(r.max)}</div>
+      <div class="summary-num spread">${(r.max-r.min).toFixed(1)} pp</div>
+    `;
+    container.appendChild(row);
+  });
+}
+
+function update(){
+  const n = currentN;
+  const active = ASSET_ORDER.filter(k => activeAssets.has(k));
+
+  chart.data.datasets = active.map(key => {
+    const a = ASSETS[key];
+    const data = rollingAnnualized(key, n);
+    return {
+      label: a.label,
+      data: data.map(d => ({ x: d.startYear, y: Number(d.ann.toFixed(2)), startYear: d.startYear, endYear: d.endYear, ann: d.ann, asset: key })),
+      backgroundColor: hexToRgba(a.color, 0.65),
+      pointRadius: 4.5,
+      pointHoverRadius: 7,
+      pointBorderColor: 'rgba(0,0,0,0)'
+    };
+  });
+  chart.update();
+
+  document.getElementById('nval').ftext = n;
+  const names = active.map(k => ASSETS[k].label);
+  document.getElementById('caption').ftext = n === 1
+    ? `Chaque point : le rendement sur 1 an d’un investissement réalisé au début de cette année dans : ${names.join(', ')}.`
+    : `Chaque point : le rendement annualisé sur ${n} ans d’un investissement réalisé au début de cette année dans : ${names.join(', ')}.`;
+
+  buildSummaryRows(n);
+
+  const pct = ((n-1)/19)*100;
+  slider.style.setProperty('--fill', pct + '%');
+}
+
+const slider = document.getElementById('slider');
+slider.addEventListener('input', (e) => { currentN = Number(e.target.value); update(); });
+
+update();
+};
+
+/* ===================== tab system ===================== */
+const TABS = [
+  { id: 'horizon', label: `\u2460 Temps et risque` },
+  { id: 'variance', label: `\u2461 Pourquoi T\u22121` },
+  { id: 'se', label: `\u2462 Erreur-type` },
+  { id: 'compound', label: `\u2463 Rendement composé` },
+  { id: 'diversify', label: `\u2464 Diversification` },
+  { id: 'paths', label: `\u2465 Horizon long` },
+  { id: 'beta', label: `\u2466 Bêta` }
+];
+const inited = {};
+function activate(id, push) {
+  if (!TABS.some(t => t.id === id)) id = 'horizon';
+  TABS.forEach(t => {
+    const p = $('panel-' + t.id), b = $('tab-' + t.id), on = t.id === id;
+    p.hidden = !on; b.setAttribute('aria-selected', on ? 'true' : 'false'); b.tabIndex = on ? 0 : -1;
+  });
+  if (!inited[id]) { inited[id] = true; INIT[id](); }
+  (charts[id] || []).forEach(c => { try { c.resize(); } catch (e) {} });
+  if (push) { try { history.replaceState(null, '', '#' + id); } catch (e) { try { location.hash = id; } catch (e2) {} } }
+}
+(function buildTabs() {
+  const nav = $('tabs');
+  TABS.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab'; b.id = 'tab-' + t.id; b.type = 'button'; b.setAttribute('role', 'tab'); b.setAttribute('aria-controls', 'panel-' + t.id);
+    b.ftext = t.label;
+    b.addEventListener('click', () => activate(t.id, true));
+    b.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const j = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+      activate(TABS[j].id, true); $('tab-' + TABS[j].id).focus();
+    });
+    nav.appendChild(b);
+  });
+  Chart.defaults.font.family = 'Montserrat'; Chart.defaults.locale = 'fr-FR';
+  Chart.defaults.color = css('--muted');
+  let start = 'horizon';
+  try { start = (location.hash || '').replace('#', '') || 'horizon'; } catch (e) {}
+  activate(start, false);
+})();
+
+</script>
+</body>
+</html>
